@@ -36,6 +36,7 @@ def parse_md_file_for_today_jobs(content):
     table_started = False
     data = []
     today = datetime.now().strftime("%b %d")
+    print(today)
     lastcompany = ""
 
     for line in lines:
@@ -52,6 +53,8 @@ def parse_md_file_for_today_jobs(content):
 
             split_line[3] = extract_url(split_line)[3]
 
+            split_line[0] = extract_company_name(split_line[0])
+
             if (split_line[0] != "↳"):
                 lastcompany = split_line[0]
             else:
@@ -67,6 +70,12 @@ def parse_md_file_for_today_jobs(content):
 
     df = pd.DataFrame(data, columns=columns)
     return df
+
+def extract_company_name(text):
+    match = re.match(r'\[(.*?)\]\(.*?\)', text)
+    if match:
+        return match.group(1)
+    return text
 
 def extract_url(entry):
     url_pattern = re.compile(r'href="(.*?)"')    
