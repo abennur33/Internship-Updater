@@ -53,6 +53,78 @@ Make sure you have set the following environment variables as GitHub secrets:
 - `TOKEN`: Your GitHub personal access token.
 - `GOOGLE_SHEET_ID`: The ID of your Google Sheet.
 
+## Adjusting Schedule for Different Time Zones
+
+The script is scheduled to run daily at 11:50 PM CST by default. You may want to adjust the schedule to match your local time zone. Below are the cron settings and time zone configurations for EST, PST, and CST.
+
+### EST (Eastern Standard Time)
+
+- **Local Time**: 11:50 PM EST
+- **UTC Time**: 4:50 AM UTC (next day)
+- **Cron Expression**: `50 3 * * *`
+- **Time Zone Setting**: `TZ: America/New_York`
+
+### PST (Pacific Standard Time)
+
+- **Local Time**: 11:50 PM PST
+- **UTC Time**: 7:50 AM UTC (next day)
+- **Cron Expression**: `50 6 * * *`
+- **Time Zone Setting**: `TZ: America/Los_Angeles`
+
+### CST (Central Standard Time)
+
+- **Local Time**: 11:50 PM CST
+- **UTC Time**: 5:50 AM UTC (next day)
+- **Cron Expression**: `50 4 * * *`
+- **Time Zone Setting**: `TZ: America/Chicago`
+
+### Example Configuration for PST
+
+```yaml
+name: Run Python Script
+
+on:
+  schedule:
+    - cron: '50 6 * * *' # Runs at 6:50 AM UTC which is 11:50 PM PST
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      TZ: America/Los_Angeles # Set the time zone to PST (Pacific Standard Time)
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Download GeckoDriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget tar
+          wget -N https://github.com/mozilla/geckodriver/releases/download/v0.30.0/geckodriver-v0.30.0-linux64.tar.gz
+          tar -xzf geckodriver-v0.30.0-linux64.tar.gz
+          chmod +x geckodriver
+          sudo mv geckodriver /usr/local/bin/
+      - name: Install Firefox
+        run: |
+          sudo apt-get install -y firefox
+      - name: Run script
+        run: |
+          python updater.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+```
+
+
 ## Dependencies
 
 The required Python packages are listed in the `requirements.txt` file and are configured to automatically download every time you run the github action within `schedule.yaml`:
